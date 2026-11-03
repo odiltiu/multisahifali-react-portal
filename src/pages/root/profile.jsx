@@ -1,3 +1,3 @@
 export default function Profile() {
-  return <h1>👤 Root Profile Page</h1>;
+  return <h1>👤 Profil</h1>;
 }

@@ -1,3 +1,3 @@
 export default function Home() {
-  return <h1>🏠 Root Home Page</h1>;
+  return <h1>🏠 Bosh sahifa</h1>;
 }

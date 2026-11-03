@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, Outlet, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 
 // 1. Auth importlari
 import Login from './pages/auth/login';
@@ -20,60 +20,98 @@ import Chat from './pages/chat';
 import Posts from './pages/posts';
 import Users from './pages/users';
 
-// Layoutlar
-const RootLayout = () => (
-  <div>
-    <header>
-      <h2>Root Section</h2>
-      <nav>
-        <Link to="/root/home">Home</Link> | 
-        <Link to="/root/categories">Categories</Link> | 
-        <Link to="/root/projects">Projects</Link> | 
-        <Link to="/root/profile">Profile</Link> | 
-        <Link to="/root/settings">Settings</Link>
-      </nav>
-    </header>
-    <main><Outlet /></main>
-  </div>
+// Bosh menyu. "match" — bo'limdagi istalgan ichki sahifada ham faol ko'rinishi uchun
+const MAIN_LINKS = [
+  { to: '/root/home', match: '/root', label: 'Asosiy' },
+  { to: '/auth/login', match: '/auth', label: 'Kirish' },
+  { to: '/portfolio/resume', match: '/portfolio', label: 'Portfolio' },
+  { to: '/chat', match: '/chat', label: 'Chat' },
+  { to: '/posts', match: '/posts', label: 'Postlar' },
+  { to: '/users', match: '/users', label: 'Foydalanuvchilar' },
+];
+
+const SECTIONS = {
+  root: {
+    title: "Asosiy bo'lim",
+    links: [
+      { to: '/root/home', label: 'Bosh sahifa' },
+      { to: '/root/categories', label: 'Kategoriyalar' },
+      { to: '/root/projects', label: 'Loyihalar' },
+      { to: '/root/profile', label: 'Profil' },
+      { to: '/root/settings', label: 'Sozlamalar' },
+    ],
+  },
+  auth: {
+    title: 'Avtorizatsiya',
+    links: [
+      { to: '/auth/login', label: 'Kirish' },
+      { to: '/auth/register', label: "Ro'yxatdan o'tish" },
+    ],
+  },
+  portfolio: {
+    title: 'Portfolio',
+    links: [
+      { to: '/portfolio/resume', label: 'Rezyume' },
+      { to: '/portfolio/projects', label: 'Loyihalar' },
+    ],
+  },
+};
+
+// Tuzatildi: uchala layout bir xil kod edi. Endi bitta komponent; NavLink "active" klassini qo'yadi
+// (oldin Link ishlatilgani uchun CSS'dagi a.active uslubi hech qachon ishlamasdi)
+function SectionLayout({ section }) {
+  const { title, links } = SECTIONS[section];
+  return (
+    <div className={`${section}-layout`}>
+      <header>
+        <h2>{title}</h2>
+        <nav aria-label={title}>
+          {links.map((l) => (
+            <NavLink key={l.to} to={l.to}>{l.label}</NavLink>
+          ))}
+        </nav>
+      </header>
+      <main><Outlet /></main>
+    </div>
+  );
+}
+
+function MainNav() {
+  const { pathname } = useLocation();
+  return (
+    <nav aria-label="Asosiy menyu">
+      {MAIN_LINKS.map((l) => (
+        <NavLink key={l.to} to={l.to} className={pathname.startsWith(l.match) ? 'active' : undefined}>
+          {l.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
+// Mustaqil sahifalar ham bir xil <main> ichida chiqadi
+const PlainLayout = () => (
+  <main><Outlet /></main>
 );
 
-const AuthLayout = () => (
-  <div>
-    <h2>Auth Section</h2>
-    <nav>
-      <Link to="/auth/login">Login</Link> | 
-      <Link to="/auth/register">Register</Link>
-    </nav>
-    <main><Outlet /></main>
-  </div>
-);
-
-const PortfolioLayout = () => (
-  <div>
-    <h2>Portfolio Section</h2>
-    <nav>
-      <Link to="/portfolio/resume">Resume</Link> | 
-      <Link to="/portfolio/projects">Projects</Link>
-    </nav>
-    <main><Outlet /></main>
-  </div>
-);
+function NotFound() {
+  return (
+    <main>
+      <h1>404 — Sahifa topilmadi</h1>
+      <p style={{ marginTop: 16 }}>
+        <Link to="/root/home">Bosh sahifaga qaytish</Link>
+      </p>
+    </main>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-      <nav>
-        <Link to="/root/home">Root</Link> | 
-        <Link to="/auth/login">Auth</Link> | 
-        <Link to="/portfolio/resume">Portfolio</Link> | 
-        <Link to="/chat">Chat</Link> | 
-        <Link to="/posts">Posts</Link> | 
-        <Link to="/users">Users</Link>
-      </nav>
-      <hr />
+      <MainNav />
 
       <Routes>
-        <Route path="/root" element={<RootLayout />}>
+        <Route path="/root" element={<SectionLayout section="root" />}>
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<Home />} />
           <Route path="categories" element={<Categories />} />
@@ -82,24 +120,26 @@ export default function App() {
           <Route path="settings" element={<Settings />} />
         </Route>
 
-        <Route path="/auth" element={<AuthLayout />}>
+        <Route path="/auth" element={<SectionLayout section="auth" />}>
           <Route index element={<Navigate to="login" replace />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
         </Route>
 
-        <Route path="/portfolio" element={<PortfolioLayout />}>
+        <Route path="/portfolio" element={<SectionLayout section="portfolio" />}>
           <Route index element={<Navigate to="resume" replace />} />
           <Route path="resume" element={<Resume />} />
           <Route path="projects" element={<PortfolioProjects />} />
         </Route>
 
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/posts" element={<Posts />} />
-        <Route path="/users" element={<Users />} />
+        <Route element={<PlainLayout />}>
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/posts" element={<Posts />} />
+          <Route path="/users" element={<Users />} />
+        </Route>
 
         <Route path="/" element={<Navigate to="/root/home" replace />} />
-        <Route path="*" element={<h1>404 - Sahifa Topilmadi</h1>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
