@@ -105,3 +105,38 @@ main h1 {
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
+/* Telefonda menyular qatorga o'raladi (oldin 375px ekrandan chiqib ketardi) */
+body > div > nav:first-child,
+div > header nav {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  body > div > nav:first-child {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  body > div > nav:first-child a {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  div > header {
+    padding: 16px;
+  }
+
+  main {
+    padding: 20px 16px;
+  }
+
+  main h1 {
+    font-size: 22px;
+    padding: 18px;
+  }
+}
+
+a:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

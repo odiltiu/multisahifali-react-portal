@@ -1,3 +1,3 @@
 export default function RootProjects() {
-  return <h1>🚀 Root Projects Page</h1>;
+  return <h1>🛠️ Loyihalar</h1>;
 }
